@@ -35,6 +35,7 @@ class Dog:
     """
         CURSOR.execute(sql, (self.name, self.breed))
         CONN.commit()
+        self.id = CURSOR.lastrowid
 
     @classmethod
     def create(cls, name, breed):
@@ -65,6 +66,8 @@ class Dog:
         LIMIT 1
     """
         row = CURSOR.execute(sql, (name,)).fetchone()
+        if not row:
+            return None
         dog = cls.new_from_db(row)
         return dog
 
@@ -100,9 +103,13 @@ class Dog:
     def update(self):
         sql = """
         UPDATE dogs SET name = ?
-        WHERE name = ?
+        WHERE id = ?
     """
         old_name = CURSOR.execute(
             """SELECT * FROM dogs WHERE id =? """, (self.id,)
-        ).fetchone()[1]
+        ).fetchone()[0]
+
+        print(old_name, self.name)
+
         CURSOR.execute(sql, (self.name, old_name))
+        CONN.commit()
